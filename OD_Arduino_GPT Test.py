@@ -35,6 +35,12 @@ class VideoStream:
         self.stopped = True  
         self.picam2.stop()
 
+pkg = importlib.util.find_spec('tflite_runtime')
+if pkg:
+    from tflite_runtime.interpreter import Interpreter
+else:
+    from tensorflow.lite.python.interpreter import Interpreter 
+
 def initialize_interpreter(model_path):
     interpreter = Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
@@ -61,7 +67,7 @@ def send_coordinates(ser, x, y, center_margin_x, center_margin_y, center_frame_x
 def main():
     ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1.0)
     time.sleep(3)  
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--modeldir', required=True, help='Folder the .tflite file is located in')
     parser.add_argument('--graph', default='detect.tflite', help='Name of the .tflite file')
