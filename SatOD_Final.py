@@ -104,6 +104,7 @@ with open(PATH_TO_LABELS, 'r') as f:
 if labels[0] == '???':
     del(labels[0])
 
+# Load the Tensorflow lite model
 interpreter = Interpreter(model_path=PATH_TO_CKPT)
 interpreter.allocate_tensors()
 
@@ -192,7 +193,6 @@ while True:
 
     # Calculate framerate
     t2 = cv2.getTickCount()
-    # time1 = (t2-t1)/freq
     frame_rate_calc = videostream.calculate_frame_rate(t1, freq)
 
     # Press 'q' to quit
