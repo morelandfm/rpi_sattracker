@@ -8,8 +8,22 @@ import importlib.util
 from picamera2 import Picamera2, MappedArray, Preview
 import serial
 
+'''
+The majority of the object detection code below was provided by the tutorial made by Edje Electronics https://www.youtube.com/@EdjeElectronics
+His videos were extremely helpful, as was his GitHub page: https://github.com/EdjeElectronics/TensorFlow-Lite-Object-Detection-on-Android-and-Raspberry-Pi
+The changes that I have made are with respect to functions required to send information via serial connection with an arduino that controls the servos as
+they track the object. 
+'''
+
+'''
+The videostream class sets up the Picamera2 video stream that the tensorflow lite model will run on.
+It has parameters for setting up the resolution and max frame rate, though unless you are running an
+extremely good setup the object detection model will struggle to get anywhere near 30 FPS. This is 
+especially so for a Raspberry Pi without a TPU. This portion of the code was helped along by this
+source - Adrian Rosebrock, PyImageSearch: https://www.pyimagesearch.com/2015/12/28/increasing-raspberry-pi-fps-with-python-and-opencv/
+'''
+
 class VideoStream:
-    """Camera object that controls video streaming from the Picamera"""
     def __init__(self, resolution=(640,480), framerate=30):
         self.picam2 = Picamera2()
         self.picam2.preview_configuration.main.size = resolution
@@ -35,17 +49,20 @@ class VideoStream:
         self.stopped = True  
         self.picam2.stop()
 
+# Importing libraries for tflite implementation
 pkg = importlib.util.find_spec('tflite_runtime')
 if pkg:
     from tflite_runtime.interpreter import Interpreter
 else:
     from tensorflow.lite.python.interpreter import Interpreter 
 
+# Initiallizing the interpreter
 def initialize_interpreter(model_path):
     interpreter = Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
     return interpreter
 
+# Getting object detection labels
 def get_labels(path_to_labels):
     with open(path_to_labels, 'r') as f:
         labels = [line.strip() for line in f.readlines()]
@@ -53,11 +70,13 @@ def get_labels(path_to_labels):
         del(labels[0])
     return labels
 
+# Calculating the framerate, important when changing the code to isolate what is speeding/slowing the program
 def calculate_frame_rate(t1, freq):
     t2 = cv2.getTickCount()
     time_elapsed = (t2 - t1) / freq
     return 1 / time_elapsed if time_elapsed > 0 else 0
 
+# Taking the coordinates of the box around the object detected and using serial communication to send the data to the arduino
 def send_coordinates(ser, x, y, center_margin_x, center_margin_y, center_frame_x, center_frame_y):
     dist_x = abs(x - center_frame_x)
     dist_y = abs(y - center_frame_y)
@@ -65,9 +84,11 @@ def send_coordinates(ser, x, y, center_margin_x, center_margin_y, center_frame_x
         ser.write(f"{x},{y}\n".encode())
 
 def main():
+    # Initiallize serial communication with the arduino
     ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1.0)
     time.sleep(3)  
 
+    # Commands from the command line being parsed to get the different information stored locally
     parser = argparse.ArgumentParser()
     parser.add_argument('--modeldir', required=True, help='Folder the .tflite file is located in')
     parser.add_argument('--graph', default='detect.tflite', help='Name of the .tflite file')
@@ -83,12 +104,14 @@ def main():
     resW, resH = args.resolution.split('x')
     imW, imH = int(resW), int(resH)
 
+    # Path setup and interpreter initiallization, floating or quantized determination, index-box-class score output
     CWD_PATH = os.getcwd()
     PATH_TO_CKPT = os.path.join(CWD_PATH, MODEL_NAME, GRAPH_NAME)
     PATH_TO_LABELS = os.path.join(CWD_PATH, MODEL_NAME, LABELMAP_NAME)
     labels = get_labels(PATH_TO_LABELS)
     interpreter = initialize_interpreter(PATH_TO_CKPT)
 
+    # Retrieving the input output details from the model
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
     height = input_details[0]['shape'][1]
@@ -108,6 +131,7 @@ def main():
     box_width = 200
     box_height = 200
 
+    # Initialize video stream and determine the frame margins for centering data
     videostream = VideoStream(resolution=(imW, imH), framerate=30).start()
     time.sleep(1)
 
@@ -116,6 +140,7 @@ def main():
     center_frame_x = imW // 2
     center_frame_y = imH // 2
 
+    # Capturing and processing frame loop, normalizing the input data if it's a floating model, running inference on the model 
     while True:
         t1 = cv2.getTickCount()
         frame1 = videostream.read()
@@ -134,6 +159,7 @@ def main():
         classes = interpreter.get_tensor(output_details[classes_idx]['index'])[0]
         scores = interpreter.get_tensor(output_details[scores_idx]['index'])[0]
 
+        # Getting results, drawing boxes, sending coordinates loop
         for i in range(len(scores)):
             if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
                 center_y = int((boxes[i][0] + boxes[i][2]) / 2 * imH)
@@ -154,6 +180,7 @@ def main():
 
                 send_coordinates(ser, center_x, center_y, center_margin_x, center_margin_y, center_frame_x, center_frame_y)
 
+        # Frame rate display and calculation, showing the frame, exit condition and cleanup
         cv2.putText(frame, 'FPS: {0:.2f}'.format(frame_rate_calc), (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
         cv2.imshow('Object detector', frame)
 
@@ -166,5 +193,6 @@ def main():
     videostream.stop()
     ser.close()
 
+# Exectuting main
 if __name__ == '__main__':
     main()
