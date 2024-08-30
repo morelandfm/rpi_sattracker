@@ -2,10 +2,10 @@ Hi,
 
 My name is Jon Moreland, an applied physics undergrad in his final semester at the University of Arizona. This code is from a project that I was able to work on over the Summer in association with Marhold Space Systems. The goal for the project was to use a Raspberry Pi to identify and track a model satellite. Then meet a set of criteria for capture after identification (In this case proximity).
 
-Parts:
-Raspberry Pi 4B 8GB
-Pi Camera Module V2
-Arducam IMX219 Wide Angle Camera Module 
+Parts:<br/>
+Raspberry Pi 4B 8GB<br/>
+Pi Camera Module V2<br/>
+Arducam IMX219 Wide Angle Camera Module<br/> 
 Two 9G servos
 Arduino Mega 2560 (You don't need this big of a board, just what I had on hand)
 One Red LED
