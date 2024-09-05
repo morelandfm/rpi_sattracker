@@ -40,7 +40,7 @@ After I had my model I used SatOD_Final.py to test the object detection program,
 
 # Communicating with arduino <br/>
 
-Once the object detection model was working well I moved on to implementing the servos and the arduino with OD_Arduino_Final.py. There's a couple more dependencies that needed to be used for this which you'll see in the code, as well as some changes but similar implementation from the SatOD_Final.py. Here the idea is that we are taking the pixel value of the center of the bounding box generated around the detected object and sending that value to the arduino via serial implementation. <br/>
+Once the object detection model was working well I moved on to implementing the servos and the arduino with OD_Arduino_Final.py. There's a couple more dependencies that needed to be used for this which you'll see in the code, as well as some changes but similar implementation from the SatOD_Final.py. Here the idea is that we are taking the resolution value of the center of the bounding box generated around the detected object and sending that value to the arduino via serial implementation. <br/>
 
 ### Initial Attempts and Issues <br/>
 
