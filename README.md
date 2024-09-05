@@ -53,3 +53,12 @@ Here I'll add that it's important to make adjustments to the code if you plan on
 Another issue is that the only way to correctly track an object detected by the program is for there to only be ONE object for the program to correctly detect. Since the program can only center on one object, if the program detects a second object it will throw the program off when it detects the second object. I didn't spend a ton of time trying to solve this problem other than raising the threshold and using only one test object for the program. But the little research I did didn't look like it was possible to set the program to only track one object. My understanding is that the object detection model is running on every frame individually, and so there is no way for the program to stop looking for new objects after spotting the first because there is no way for the model to know which is first in between frames and then stop looking.
 
 If you put everything together, run the program, and the servos are turning away from the object the camera detected reverse the angle mapping on the servos. You'll see in the arduino code that I have one servo mapped from 0, 180 and one from 180, 0 and that's due to the fact that how my pan tilt is setup I had to put one of the servos in reverse so I had to switch the mapping on that specific servo.
+
+# LiDAR <br/>
+
+The TFmini plus made by Benewake is a really solid piece of equipment that worked really well for me in this project. I ran the distance measuring through the arduino since I was planning on running my LED's (go/no go) through the arduino as well. The TFmini plus has an input, output, positive, ground cord attachment. The input output will go to one of the tx/rx ports on the arduino board, remember that they are set up so that the tx from the sensor goes to the rx on the arduino and vice versa. I made and 3D printed my own hat for the sensor to go on, you could just as easily screw the sensor into a part of the pan tilt hat.  
+
+You'll see in the arduino code that this was a quite simple and straight forward bit of code where if the sensor detected an object within the "go" range it would switch on the green LED, otherwise the red LED would remain lit. 
+
+I'm using the tfminiplus library created by budryerson https://github.com/budryerson/TFMini-Plus/tree/master, which as far as I could find worked extremely well.
+
