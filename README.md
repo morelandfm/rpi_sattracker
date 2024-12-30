@@ -64,6 +64,6 @@ I'm using the tfminiplus library created by budryerson https://github.com/budrye
 
 # Conclusions <br/>
 
-On a Raspberry Pi 4B with 8GB of ram I using the code in this repository I was able to get between 3-5 fps. I couldn't get a demonstration to under 10mb to put in the readme. I'll be trying to use a yolo v8 model in the future as well.
+On a Raspberry Pi 4B with 8GB of ram I using the code in this repository I was able to get between 3-5 fps. There is a quick video demonstration of the model with tracking and lidar in action in the "Combined Video Demonstration". I'll be trying to use a yolo v8 model in the future as well.
 
 
